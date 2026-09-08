@@ -1,0 +1,60 @@
+name: Sync Upstream (Protect Config & README)
+
+on:
+  schedule:
+    # 每天北京时间早上 8:00 (UTC 0:00) 自动检查并同步一次上游
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 支持在 GitHub Actions 页面随时手动点击“Run workflow”一键同步
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Fork Repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0 # 获取完整提交历史以执行三方合并
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git Identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch Upstream
+        run: |
+          git remote add upstream https://github.com/Sougm/Hakimi.git
+          git fetch upstream main
+
+      - name: Sync & Exclude Protected Files
+        run: |
+          UPSTREAM_REV=$(git rev-parse upstream/main)
+          MERGE_BASE=$(git merge-base HEAD upstream/main)
+
+          # 1. 检查上游是否有新提交，若无更新则直接退出
+          if [ "$UPSTREAM_REV" = "$MERGE_BASE" ]; then
+            echo "✅ 已经是最新状态，上游没有新提交，无需同步。"
+            exit 0
+          fi
+
+          echo "🚀 检测到上游有更新，开始执行安全合并..."
+
+          # 2. 合并上游 main 分支，但不立即提交
+          # 即使 wrangler.toml 或 README 发生冲突，|| true 也能确保脚本不中断
+          git merge upstream/main --no-commit --no-ff || true
+
+          # 3. 核心铁律：强制用我们 fork 仓库已有的配置覆盖任何改动或冲突状态
+          git checkout HEAD -- README.md worker/wrangler.toml
+
+          # 4. 检查是否有实质代码变动需要提交
+          if git diff --cached --quiet; then
+            echo "上游仅更新了被排除的文件，无实质代码需要提交。"
+          else
+            git commit -m "chore: auto sync upstream (preserve custom KV ID & README)"
+            git push origin main
+            echo "🎉 同步成功！代码已更新，且完美保留了您的 KV ID 与 README。"
+          fi
