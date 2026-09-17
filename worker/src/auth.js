@@ -56,7 +56,7 @@ async function hmac(secret, msg) {
   return b64(sig).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-const TTL = 7 * 24 * 3600 * 1000;   // 会话 7 天
+const TTL = 30 * 24 * 3600 * 1000;  // 会话 30 天（1 个月）
 
 /** 用密码哈希当签名密钥：改密码 -> 哈希变 -> 所有旧 token 自动失效。 */
 export async function signToken(cred) {

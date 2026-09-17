@@ -202,7 +202,7 @@ export default {
           headers: {
             "content-type": "application/json; charset=utf-8",
             "set-cookie": `${COOKIE}=${token}; Path=/; HttpOnly; Secure; ` +
-                          `SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
+                          `SameSite=Lax; Max-Age=${30 * 24 * 3600}`,
           },
         });
       }
@@ -306,7 +306,7 @@ export default {
         headers: {
           "content-type": "application/json; charset=utf-8",
           "set-cookie": `${COOKIE}=${token}; Path=/; HttpOnly; Secure; ` +
-                        `SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
+                        `SameSite=Lax; Max-Age=${30 * 24 * 3600}`,
         },
       });
     }

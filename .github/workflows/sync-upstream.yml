@@ -27,7 +27,7 @@ jobs:
 
       - name: Fetch Upstream
         run: |
-          git remote add upstream https://github.com/Sougm/Hakimi.git
+          git remote add upstream https://github.com/byJoey/warp-masque-actions.git
           git fetch upstream main
 
       - name: Sync & Exclude Protected Files
@@ -50,11 +50,19 @@ jobs:
           # 3. 核心铁律：强制用我们 fork 仓库已有的配置覆盖任何改动或冲突状态
           git checkout HEAD -- README.md worker/wrangler.toml
 
-          # 4. 检查是否有实质代码变动需要提交
+          # 4. 强制维持自定义配置：30 天 Token TTL 与 Cookie 有效期
+          sed -i -E 's/const TTL = [0-9]+ \* 24 \* 3600 \* 1000;/const TTL = 30 * 24 * 3600 * 1000;  \/\/ 会话 30 天（1 个月）/g' worker/src/auth.js
+          sed -i -E 's/Max-Age=\$\{[0-9]+ \* 24 \* 3600\}/Max-Age=\${30 * 24 * 3600}/g' worker/src/index.js
+
+          # 5. 重新打包单文件版 worker.js
+          cd worker && npm install --silent && npm run build && cd ..
+          git add worker/dist/worker.js worker/src/auth.js worker/src/index.js
+
+          # 6. 检查是否有实质代码变动需要提交
           if git diff --cached --quiet; then
             echo "上游仅更新了被排除的文件，无实质代码需要提交。"
           else
-            git commit -m "chore: auto sync upstream (preserve custom KV ID & README)"
+            git commit -m "chore: auto sync upstream (preserve custom KV ID, 30-day token & README)"
             git push origin main
-            echo "🎉 同步成功！代码已更新，且完美保留了您的 KV ID 与 README。"
+            echo "🎉 同步成功！代码已更新，且完美保留了您的 30 天 Token、KV ID 与 README。"
           fi

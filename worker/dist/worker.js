@@ -1597,7 +1597,7 @@ async function hmac(secret, msg) {
   const sig = await crypto.subtle.sign("HMAC", key, enc.encode(msg));
   return b642(sig).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-var TTL = 7 * 24 * 3600 * 1e3;
+var TTL = 30 * 24 * 3600 * 1e3;
 async function signToken(cred) {
   const exp = Date.now() + TTL;
   return `${exp}.${await hmac(cred.hash, String(exp))}`;
@@ -1767,7 +1767,7 @@ var index_default = {
         return new Response(JSON.stringify({ ok: true }), {
           headers: {
             "content-type": "application/json; charset=utf-8",
-            "set-cookie": `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 3600}`
+            "set-cookie": `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${30 * 24 * 3600}`
           }
         });
       }
@@ -1857,7 +1857,7 @@ var index_default = {
       return new Response(JSON.stringify({ ok: true }), {
         headers: {
           "content-type": "application/json; charset=utf-8",
-          "set-cookie": `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 3600}`
+          "set-cookie": `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${30 * 24 * 3600}`
         }
       });
     }
